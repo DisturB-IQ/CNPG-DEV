@@ -31,7 +31,6 @@ FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17
 USER root
 
 RUN apt-get update \
-    && apt-get install -y libcurl4-openssl-dev \ # Check if this is needed
     && rm -rf /tmp/* \
     && rm -rf /var/lib/apt/lists \
     && rm -rf /var/cache/apt/archives

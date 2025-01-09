@@ -35,6 +35,8 @@ WORKDIR /timestamp9/build
 RUN cmake ..
 RUN make
 RUN make install
+RUN ls -l /usr/lib/postgresql/17/lib/timestamp9*
+RUN ls -l /usr/share/postgresql/17/extension/timestamp9*
 
 # Final stage - Copy only TimescaleDB and timestamp9 extensions from builder to final image.
 FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17
@@ -49,5 +51,6 @@ RUN apt-get update \
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
 COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9* /usr/lib/postgresql/17/lib/
+COPY --from=builder /usr/share/postgresql/17/extension/timestamp9* /usr/share/postgresql/17/extension/
 
 USER 26

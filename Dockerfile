@@ -25,7 +25,7 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
     timescaledb-2-loader-postgresql-17 \
     timescaledb-2-postgresql-17
 
-# Install build dependencies for timestamp9 (Crucial: postgresql-server-dev-17 and cmake)
+# Install build dependencies for timestamp9
 RUN apt-get update && apt-get install -y \
     build-essential \
     autoconf \
@@ -42,14 +42,14 @@ RUN git clone https://github.com/optiver/timestamp9.git .
 
 WORKDIR /tmp/timestamp9/build
 
-# Configure using CMake (Crucial: Explicit pg_config path)
+# Configure using CMake
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DPG_CONFIG=/usr/lib/postgresql/17/bin/pg_config ..
 
 # Build using make
 RUN make
 
-# Install to a temporary directory
-RUN make install DESTDIR=/tmp/timestamp9_install
+# Copy only the .so file directly
+RUN cp timestamp9.so /usr/lib/postgresql/17/lib/
 
 # Final stage
 FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17
@@ -61,12 +61,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists \
     && rm -rf /var/cache/apt/archives
 
-# Copy TimescaleDB and timestamp9 extensions
+# Copy TimescaleDB and timestamp9 extensions (only the .so)
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
-COPY --from=builder /tmp/timestamp9_install/usr/local/lib/* /usr/lib/postgresql/17/lib/
-COPY --from=builder /tmp/timestamp9_install/usr/local/share/postgresql/17/extension/* /usr/share/postgresql/17/extension/
-COPY --from=builder /tmp/timestamp9_install/usr/local/share/doc/postgresql/extension/* /usr/share/postgresql/17/doc/extension/
-
+COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9.so /usr/lib/postgresql/17/lib/
 
 USER 26

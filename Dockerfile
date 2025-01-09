@@ -64,6 +64,6 @@ RUN apt-get update \
 # Copy TimescaleDB and timestamp9 extensions (only the .so)
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
-RUN cp /tmp/timestamp9/build/timestamp9.so /usr/lib/postgresql/17/lib/
+COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9.so /usr/lib/postgresql/17/lib/
 
 USER 26

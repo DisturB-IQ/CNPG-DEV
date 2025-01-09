@@ -33,4 +33,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: aoinfra/cnpg-dev:17.1
+          tags: aoinfra/cnpg-dev:17.2

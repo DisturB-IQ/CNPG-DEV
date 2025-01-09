@@ -26,18 +26,15 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
   timescaledb-2-postgresql-17
 
 # Install Optiver timestamp9 extension
-RUN apt-get update \
-  && apt-get install -y git build-essential cmake \
-  # Optional: libpq-dev for development headers (for advanced scenarios)
-
+RUN apt-get update
+RUN apt-get install -y git build-essential cmake
 RUN git clone https://github.com/optiver/timestamp9.git
 WORKDIR /timestamp9
 RUN mkdir build
-WORKDIR build
+WORKDIR /timestamp9/build
 RUN cmake ..
-# Optional: Use -DPG_CONFIG=/path/to/pg_config if you have a specific pg_config path
 RUN make
-RUN sudo make install
+RUN make install
 
 # Final stage - Copy only TimescaleDB and timestamp9 extensions from builder to final image.
 FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17

@@ -28,7 +28,6 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
 # Install timestamp9 extension - Corrected
 RUN git clone --depth=1 https://github.com/optiver/timestamp9.git \
     && cd timestamp9 \
-    && make USE_PGXS=1 \ #Crucial Change
     && make USE_PGXS=1 install
 
 # Final stage - Copy only necessary files

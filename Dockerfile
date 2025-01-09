@@ -25,7 +25,25 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
     timescaledb-2-loader-postgresql-17 \
     timescaledb-2-postgresql-17
 
-# Final stage - Copy only TimescaleDB extensions from builder to final image.
+# Install build dependencies for timestamp9
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    autoconf \
+    libtool \
+    pkg-config \
+    libpq-dev \
+    git
+
+# Clone/build timestamp9
+WORKDIR /tmp/timestamp9
+RUN git clone https://github.com/optiver/timestamp9.git .
+WORKDIR /tmp/timestamp9
+RUN mkdir build && cd build && ../configure && make
+
+# Copy built library
+RUN cp -v /tmp/timestamp9/build/lib/timestamp9.so /usr/lib/postgresql/17/lib/
+
+# Final stage TimescaleDB extensions from builder to final image.
 FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17
 
 USER root
@@ -37,5 +55,6 @@ RUN apt-get update \
 
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
+COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9.so /usr/lib/postgresql/17/lib/
 
 USER 26

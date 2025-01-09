@@ -10,7 +10,8 @@ RUN apt-get update \
     && apt-get install -y apt-transport-https lsb-release wget git \
     postgresql-17 postgresql-server-dev-17 clang libssl-dev libssl1.1 \
     software-properties-common ca-certificates build-essential gnupg curl \
-    make gcc clang pkg-config
+    make gcc clang pkg-config \
+    libpq-dev
 
 # Install TimescaleDB Community
 RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \

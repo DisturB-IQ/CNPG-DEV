@@ -32,13 +32,14 @@ RUN apt-get update && apt-get install -y \
     libtool \
     pkg-config \
     libpq-dev \
-    git
+    git \
+    postgresql-server-dev-17
 
 # Clone/build timestamp9
 WORKDIR /tmp/timestamp9
 RUN git clone https://github.com/optiver/timestamp9.git .
 WORKDIR /tmp/timestamp9
-RUN mkdir build && cd build && ../configure && make
+RUN make USE_PGXS=1
 
 # Copy built library
 RUN cp -v /tmp/timestamp9/build/lib/timestamp9.so /usr/lib/postgresql/17/lib/

@@ -47,8 +47,12 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists \
   && rm -rf /var/cache/apt/archives
 
-COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9* /usr/lib/postgresql/17/lib/
-COPY --from=builder /usr/share/postgresql/17/extension/timestamp9* /usr/share/postgresql/17/extension/
+#COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9* /usr/lib/postgresql/17/lib/
+#COPY --from=builder /usr/share/postgresql/17/extension/timestamp9* /usr/share/postgresql/17/extension/
+COPY --from=builder /usr/lib/postgresql/17/lib/libtimestamp9.so /usr/lib/postgresql/17/lib/ 
+COPY --from=builder /usr/share/postgresql/17/extension/timestamp9.control /usr/share/postgresql/17/extension/ 
+COPY --from=builder /usr/share/postgresql/17/extension/timestamp9--1.4.0.sql /usr/share/postgresql/17/extension/ 
+
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
 

@@ -39,13 +39,10 @@ RUN apt-get update && apt-get install -y \
 # Clone and build timestamp9
 WORKDIR /tmp/timestamp9
 RUN git clone https://github.com/optiver/timestamp9.git .
-WORKDIR /tmp/timestamp9
-
-# Set environment variable for pg_config (optional, often not needed)
-ENV PKG_CONFIG_PATH=/usr/lib/postgresql/17/lib/pkgconfig
-
-RUN mkdir build && cd build && cmake .. -DPG_CONFIG=/usr/lib/postgresql/17/bin/pg_config # Explicit path to pg_config
+WORKDIR /tmp/timestamp9/build
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DPG_CONFIG=/usr/lib/postgresql/17/bin/pg_config ..
 RUN make
+RUN make install DESTDIR=/tmp/timestamp9_install
 
 # Copy built library
 RUN cp -v /tmp/timestamp9/build/timestamp9.so /usr/lib/postgresql/17/lib/
@@ -59,7 +56,9 @@ RUN apt-get update \
     && rm -rf /tmp/* \
     && rm -rf /var/lib/apt/lists \
     && rm -rf /var/cache/apt/archives
-
+COPY --from=builder /tmp/timestamp9_install/usr/local/lib/* /usr/lib/postgresql/17/lib/
+COPY --from=builder /tmp/timestamp9_install/usr/local/share/postgresql/17/extension/* /usr/share/postgresql/17/extension/
+COPY --from=builder /tmp/timestamp9_install/usr/local/share/doc/postgresql/extension/* /usr/share/postgresql/17/doc/extension/
 COPY --from=builder /usr/lib/postgresql/17/lib/timescaledb* /usr/lib/postgresql/17/lib/
 COPY --from=builder /usr/share/postgresql/17/extension/timescaledb* /usr/share/postgresql/17/extension/
 COPY --from=builder /usr/lib/postgresql/17/lib/timestamp9.so /usr/lib/postgresql/17/lib/

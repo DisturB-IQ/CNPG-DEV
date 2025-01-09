@@ -10,7 +10,7 @@ RUN apt-get update \
     && apt-get install -y apt-transport-https lsb-release wget git \
     postgresql-17 postgresql-server-dev-17 clang libssl-dev libssl1.1 \
     software-properties-common ca-certificates build-essential gnupg curl \
-    make gcc clang pkg-config
+    make gcc clang pkg-config cmake
 
 # Install TimescaleDB Community
 RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
@@ -25,7 +25,7 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/" \
     timescaledb-2-loader-postgresql-17 \
     timescaledb-2-postgresql-17
 
-# Install build dependencies for timestamp9
+# Install build dependencies for timestamp9 (Crucial: postgresql-server-dev-17 and cmake)
 RUN apt-get update && apt-get install -y \
     build-essential \
     autoconf \
@@ -33,18 +33,24 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libpq-dev \
     git \
-    postgresql-server-dev-17
+    postgresql-server-dev-17 \
+    cmake
 
-# Clone/build timestamp9
+# Clone and build timestamp9
 WORKDIR /tmp/timestamp9
 RUN git clone https://github.com/optiver/timestamp9.git .
 WORKDIR /tmp/timestamp9
-RUN make USE_PGXS=1
+
+# Set environment variable for pg_config (optional, often not needed)
+ENV PKG_CONFIG_PATH=/usr/lib/postgresql/17/lib/pkgconfig
+
+RUN mkdir build && cd build && cmake .. -DPG_CONFIG=/usr/lib/postgresql/17/bin/pg_config # Explicit path to pg_config
+RUN make
 
 # Copy built library
-RUN cp -v /tmp/timestamp9/build/lib/timestamp9.so /usr/lib/postgresql/17/lib/
+RUN cp -v /tmp/timestamp9/build/timestamp9.so /usr/lib/postgresql/17/lib/
 
-# Final stage TimescaleDB extensions from builder to final image.
+# Final stage - Copy only TimescaleDB and timestamp9 extensions from builder to final image.
 FROM --platform=linux/amd64 ghcr.io/cloudnative-pg/postgresql:17
 
 USER root
